@@ -1,0 +1,6 @@
+{
+  "name": "Generator Soal IPS SMP Kurikulum Merdeka",
+  "description": "Aplikasi komprehensif pembuatan soal asesmen IPS SMP Kurikulum Merdeka (LOTS, MOTS, HOTS) dilengkapi kisi-kisi, kartu soal, kunci jawaban, rubrik penilaian 100, ekspor PDF dan cetak.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
