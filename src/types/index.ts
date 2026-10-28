@@ -35,6 +35,7 @@ export interface ExamConfig {
   examTitle: string; // e.g. "Asesmen Sumatif Akhir Semester (ASAS)"
   topic: string; // Topik / materi
   learningGoal: string; // Tujuan Pembelajaran
+  selectedThemes?: string[]; // Daftar ID / kode tema yang dipilih, e.g. ['tema-01', 'tema-02', 'tema-03', 'tema-04']
   timeAllocation: number; // Menit
   questionTypeConfigs: Record<QuestionType, QuestionTypeConfig>;
   visualQuestionsCount: number; // Jumlah soal yang memuat stimulus gambar

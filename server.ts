@@ -127,6 +127,7 @@ app.post('/api/generate-questions', async (req, res) => {
       grade,
       topic,
       learningGoal,
+      selectedThemes,
       typeConfigs,
       visualCount,
       literacyCount,
@@ -153,6 +154,7 @@ app.post('/api/generate-questions', async (req, res) => {
         grade: grade || '7',
         topic: topic || 'Materi IPS SMP Kurikulum Merdeka',
         learningGoal: learningGoal || 'Menganalisis konsep IPS.',
+        selectedThemes: selectedThemes || [],
         typeConfigs: typeConfigs || {},
         visualCount: visualCount || 0,
         literacyCount: literacyCount ?? 6,
@@ -183,6 +185,7 @@ Tugas Anda: Susunlah ${aiTargetCount} butir soal utama terbaik untuk asesmen IPS
 - Mata Pelajaran: Ilmu Pengetahuan Sosial (IPS SMP)
 - Topik / Materi: "${topic}"
 - Tujuan Pembelajaran (TP): "${learningGoal}"
+${selectedThemes && selectedThemes.length > 0 ? `- Cakupan Tema Terpilih: ${selectedThemes.join(', ')} (Distribusikan soal secara proporsional ke tema-tema tersebut)` : ''}
 - Bentuk Soal: ${typeSummary}
 - Target Literasi: ${literacyCount ?? 6} butir soal fokus literasi membaca (wacana artikel, narasi historis, dinamika sosial budaya)
 - Target Numerasi: ${numeracyCount ?? 6} butir soal fokus numerasi data IPS (tabel statistik ekonomi pasar, grafik kurva harga, piramida demografi)

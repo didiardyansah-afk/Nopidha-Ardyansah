@@ -51,15 +51,17 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const handlePrint = () => {
-    if (activeTab === 'form' || activeTab === 'editor') {
-      onTabChange('exam_sheet');
-      onToast?.('Membuka tampilan naskah soal siswa untuk dicetak...', 'info');
-      setTimeout(() => {
-        printDocument();
-      }, 300);
-    } else {
-      printDocument();
+  const handlePrint = async () => {
+    const label =
+      activeTab === 'form' || activeTab === 'editor'
+        ? 'Naskah_Soal_Siswa'
+        : getTabLabel(activeTab);
+
+    onToast?.('Membuka dialog cetak dokumen (Pilih Printer atau Simpan sebagai PDF)...', 'info');
+    try {
+      await printDocument(doc, label);
+    } catch (err: any) {
+      onToast?.('Kendala membuka cetak: ' + (err?.message || 'Error'), 'error');
     }
   };
 
@@ -67,10 +69,6 @@ export const Header: React.FC<HeaderProps> = ({
     if (isExportingPdf) return;
     setIsExportingPdf(true);
     try {
-      if (activeTab === 'form' || activeTab === 'editor') {
-        onTabChange('exam_sheet');
-        await new Promise((resolve) => setTimeout(resolve, 300));
-      }
       const label =
         activeTab === 'form' || activeTab === 'editor'
           ? 'Naskah_Soal_Siswa'

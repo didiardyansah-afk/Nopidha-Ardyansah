@@ -140,6 +140,207 @@ export const IPS_PRESETS: TopicPreset[] = [
   },
 ];
 
+export interface ThemeInfo {
+  id: string; // 'tema-01', 'tema-02', 'tema-03', 'tema-04'
+  grade: '7' | '8' | '9';
+  code: string; // 'Tema 01'
+  themeTitle: string; // 'Kehidupan Sosial dan Kondisi Lingkungan Sekitar'
+  fullTheme: string; // 'Tema 01: Kehidupan Sosial dan Kondisi Lingkungan Sekitar'
+  discipline: string; // 'Geografi & Sosiologi'
+  subtopics: string; // 'Konektivitas Antar Ruang, Letak Astronomis Indonesia, Pemahaman Peta, Sosialisasi, Nilai & Norma'
+  learningGoal: string; // Rumusan TP kurikulum merdeka
+  element: string;
+}
+
+export const GRADE_THEMES: Record<'7' | '8' | '9', ThemeInfo[]> = {
+  '7': [
+    {
+      id: 'tema-01',
+      grade: '7',
+      code: 'Tema 01',
+      themeTitle: 'Kehidupan Sosial dan Kondisi Lingkungan Sekitar',
+      fullTheme: 'Tema 01: Kehidupan Sosial dan Kondisi Lingkungan Sekitar',
+      discipline: 'Geografi & Sosiologi Dasar',
+      subtopics: 'Konektivitas Antar Ruang, Letak Astronomis & Geografis Indonesia, Pemahaman Peta, Proses Sosialisasi, Nilai dan Norma Sosial',
+      learningGoal: 'Peserta didik mampu menganalisis letak geografis dan astronomis Indonesia serta pengaruhnya terhadap iklim dan potensi alam, serta mengidentifikasi pembentukan karakter melalui sosialisasi dan norma sosial.',
+      element: 'Pemahaman Konsep (Keruangan & Dinamika Sosial)',
+    },
+    {
+      id: 'tema-02',
+      grade: '7',
+      code: 'Tema 02',
+      themeTitle: 'Keberagaman Lingkungan Sekitar',
+      fullTheme: 'Tema 02: Keberagaman Lingkungan Sekitar',
+      discipline: 'Sejarah & Kebudayaan Nusantara',
+      subtopics: 'Corak Kehidupan Masyarakat Praaksara, Kebudayaan Paleolitikum hingga Logam, Nilai Kearifan Megalitikum, serta Pembentukan Nilai Leluhur',
+      learningGoal: 'Peserta didik mampu membandingkan corak kehidupan masa berburu, bercocok tanam, dan perundagian serta nilai kearifan peninggalan budayanya bagi kehidupan masa kini.',
+      element: 'Pemahaman Konsep (Sejarah Lokal dan Nasional)',
+    },
+    {
+      id: 'tema-03',
+      grade: '7',
+      code: 'Tema 03',
+      themeTitle: 'Potensi Ekonomi Lingkungan',
+      fullTheme: 'Tema 03: Potensi Ekonomi Lingkungan',
+      discipline: 'Ekonomi Kerakyatan & Lingkungan',
+      subtopics: 'Kelangkaan Sumber Daya, Kebutuhan Manusia, Skala Prioritas Anggaran Keluarga, dan Peran Pelaku Ekonomi Masyarakat',
+      learningGoal: 'Peserta didik mampu menganalisis konsep kelangkaan sebagai inti persoalan ekonomi serta merumuskan skala prioritas kebutuhan dan etika konsumsi bertanggung jawab.',
+      element: 'Pemahaman Konsep (Kegiatan & Pelaku Ekonomi)',
+    },
+    {
+      id: 'tema-04',
+      grade: '7',
+      code: 'Tema 04',
+      themeTitle: 'Pemberdayaan Masyarakat',
+      fullTheme: 'Tema 04: Pemberdayaan Masyarakat',
+      discipline: 'Sosiologi & Pemberdayaan Ekonomi',
+      subtopics: 'Keragaman Sosial Budaya Nusantara, Lembaga Keuangan Bank & Non-Bank, serta Peran Komunitas Lokal dalam Meningkatkan Kesejahteraan',
+      learningGoal: 'Peserta didik mampu mengevaluasi peran komunitas lokal dan lembaga keuangan dalam memberdayakan ekonomi masyarakat sekitar serta menjaga harmoni kemajemukan.',
+      element: 'Pemahaman Konsep (Pemberdayaan Masyarakat)',
+    },
+  ],
+  '8': [
+    {
+      id: 'tema-01',
+      grade: '8',
+      code: 'Tema 01',
+      themeTitle: 'Kondisi Geografis dan Pelestarian Sumber Daya Alam',
+      fullTheme: 'Tema 01: Kondisi Geografis dan Pelestarian Sumber Daya Alam',
+      discipline: 'Geografi Maritim & Konservasi',
+      subtopics: 'Posisi Silang Maritim ALKI, Iklim Tropis Muson, Potensi Sumber Daya Kemaritiman, Hutan Lindung, dan Konservasi Energi',
+      learningGoal: 'Peserta didik mampu mengevaluasi posisi strategis Indonesia dalam jalur perdagangan internasional maritim serta merancang upaya konservasi sumber daya alam secara berkelanjutan.',
+      element: 'Pemahaman Konsep (Keruangan & Konektivitas Maritim)',
+    },
+    {
+      id: 'tema-02',
+      grade: '8',
+      code: 'Tema 02',
+      themeTitle: 'Kemajemukan Masyarakat Indonesia',
+      fullTheme: 'Tema 02: Kemajemukan Masyarakat Indonesia',
+      discipline: 'Sosiologi & Integrasi Bangsa',
+      subtopics: 'Keragaman Budaya Nusantara, Saluran dan Bentuk Mobilitas Sosial, Faktor Pluralitas, dan Penguatan Integrasi Nasional',
+      learningGoal: 'Peserta didik mampu menganalisis faktor pendorong dan penghambat mobilitas sosial serta peran pluralitas masyarakat dalam memperkokoh integrasi dan kohesi sosial.',
+      element: 'Pemahaman Konsep (Dinamika Sosial & Budaya)',
+    },
+    {
+      id: 'tema-03',
+      grade: '8',
+      code: 'Tema 03',
+      themeTitle: 'Nasionalisme dan Pengembangan Ekonomi',
+      fullTheme: 'Tema 03: Nasionalisme dan Pengembangan Ekonomi',
+      discipline: 'Sejarah Pergerakan & Ekonomi',
+      subtopics: 'Latar Belakang Kolonialisme & Monopoli VOC, Tonggak Kebangkitan Nasional 1908, serta Potensi Perdagangan Antardaerah/Antarpulau',
+      learningGoal: 'Peserta didik mampu merefleksikan semangat pergerakan nasional dan menganalisis peran perdagangan antarpulau dalam mempererat persatuan ekonomi nusantara.',
+      element: 'Pemahaman Konsep (Sejarah & Ekonomi Antarpulau)',
+    },
+    {
+      id: 'tema-04',
+      grade: '8',
+      code: 'Tema 04',
+      themeTitle: 'Pembangunan Perekonomian Indonesia',
+      fullTheme: 'Tema 04: Pembangunan Perekonomian Indonesia',
+      discipline: 'Ekonomi Pembangunan & Kependudukan',
+      subtopics: 'Pemerataan Pembangunan Wilayah, Kepadatan & Kualitas Penduduk, Ketimpangan Antardaerah, dan Mediasi Resolusi Konflik Sosial',
+      learningGoal: 'Peserta didik mampu merumuskan alternatif solusi pemecahan konflik sosial dan ketimpangan pembangunan antardaerah demi ketahanan nasional.',
+      element: 'Pemahaman Konsep (Pembangunan & Ketahanan Sosial)',
+    },
+  ],
+  '9': [
+    {
+      id: 'tema-01',
+      grade: '9',
+      code: 'Tema 01',
+      themeTitle: 'Manusia dan Perubahan',
+      fullTheme: 'Tema 01: Manusia dan Perubahan',
+      discipline: 'Sosiologi Perubahan & Kebudayaan',
+      subtopics: 'Dampak Modernisasi & Westernisasi, Arus Globalisasi Budaya, Ketahanan Kearifan Lokal, dan Sikap Adaptif Generasi Muda',
+      learningGoal: 'Peserta didik mampu mengkritisi dinamika perubahan sosial budaya akibat arus globalisasi serta merancang strategi pelestarian kearifan lokal di tengah modernisasi.',
+      element: 'Pemahaman Konsep & Refleksi Kritis',
+    },
+    {
+      id: 'tema-02',
+      grade: '9',
+      code: 'Tema 02',
+      themeTitle: 'Perkembangan Ekonomi Digital',
+      fullTheme: 'Tema 02: Perkembangan Ekonomi Digital',
+      discipline: 'Ekonomi Digital & Literasi Finansial',
+      subtopics: 'Sistem Pembayaran Digital QRIS, E-Commerce, Financial Technology (Fintech), Keamanan Siber Finansial, dan Perilaku Belanja Cerdas Remaja',
+      learningGoal: 'Peserta didik mampu menganalisis manfaat dan risiko sistem transaksi keuangan non-tunai serta menunjukkan sikap cerdas berliterasi finansial digital.',
+      element: 'Pemahaman Konsep (Ekonomi Digital)',
+    },
+    {
+      id: 'tema-03',
+      grade: '9',
+      code: 'Tema 03',
+      themeTitle: 'Tantangan Pembangunan Indonesia',
+      fullTheme: 'Tema 03: Tantangan Pembangunan Indonesia',
+      discipline: 'Demografi & SDGs Berkelanjutan',
+      subtopics: 'Peluang dan Tantangan Bonus Demografi 2030-2045, Pengentasan Kemiskinan Ekstrem, dan 17 Pilar Tujuan Pembangunan Berkelanjutan (SDGs)',
+      learningGoal: 'Peserta didik mampu mengevaluasi kesiapan generasi muda menyambut jendela bonus demografi dan berkontribusi pada pencapaian 17 pilar SDGs.',
+      element: 'Pemahaman Konsep & Analisis Kritis',
+    },
+    {
+      id: 'tema-04',
+      grade: '9',
+      code: 'Tema 04',
+      themeTitle: 'Kerja Sama Dunia',
+      fullTheme: 'Tema 04: Kerja Sama Dunia',
+      discipline: 'Geopolitik & Perdagangan Internasional',
+      subtopics: 'Diplomasi Politik Luar Negeri Bebas-Aktif, Peran Indonesia di ASEAN & PBB, Pasar Bebas Global, dan Kerja Sama Bilateral-Multilateral',
+      learningGoal: 'Peserta didik mampu menganalisis diplomasi politik luar negeri bebas aktif Indonesia dalam menjaga stabilitas geopolitik dan kerja sama ekonomi dunia.',
+      element: 'Pemahaman Konsep (Geopolitik & Kerja Sama Dunia)',
+    },
+  ],
+};
+
+export function getGradeThemes(grade: '7' | '8' | '9'): ThemeInfo[] {
+  return GRADE_THEMES[grade] || GRADE_THEMES['7'];
+}
+
+export function combineGradeThemes(
+  grade: '7' | '8' | '9',
+  selectedThemeIds: string[]
+): { topic: string; learningGoal: string } {
+  const allThemes = getGradeThemes(grade);
+  const activeThemes = allThemes.filter((t) => selectedThemeIds.includes(t.id));
+
+  if (activeThemes.length === 0) {
+    return {
+      topic: `Materi Pokok IPS SMP Kelas ${grade} Kurikulum Merdeka`,
+      learningGoal: `Peserta didik mampu menganalisis materi dan konsep esensial IPS SMP Kelas ${grade}.`,
+    };
+  }
+
+  if (activeThemes.length === allThemes.length) {
+    // All themes selected (Ujian Komprehensif Seluruh Materi)
+    const combinedTopics = activeThemes
+      .map((t) => `${t.code}: ${t.themeTitle} (${t.subtopics})`)
+      .join(' · ');
+
+    const combinedGoals = `Peserta didik mampu menguasai kompetensi esensial IPS SMP Kelas ${grade} Kurikulum Merdeka yang mencakup: ` +
+      activeThemes.map((t, idx) => `(${idx + 1}) ${t.learningGoal}`).join(' ');
+
+    return {
+      topic: combinedTopics,
+      learningGoal: combinedGoals,
+    };
+  }
+
+  // Subset of themes selected
+  const combinedTopics = activeThemes
+    .map((t) => `${t.code}: ${t.themeTitle}`)
+    .join(' · ');
+
+  const combinedGoals = activeThemes
+    .map((t, idx) => `(${idx + 1}) ${t.learningGoal}`)
+    .join(' ');
+
+  return {
+    topic: combinedTopics,
+    learningGoal: combinedGoals,
+  };
+}
+
 // Rich visual SVG illustrations for "Soal Bergambar"
 export const VISUAL_STIMULI = {
   petaIndonesia: {
@@ -590,12 +791,19 @@ export function generateSmartIpsQuestions(params: {
   distributeKeysEqually?: boolean;
   literacyCount?: number;
   numeracyCount?: number;
+  selectedThemes?: string[];
 }): QuestionItem[] {
   const result: QuestionItem[] = [];
   let currentNumber = 1;
 
   const activeCognitive = params.cognitiveLevels.length > 0 ? params.cognitiveLevels : (['LOTS', 'MOTS', 'HOTS'] as CognitiveLevel[]);
   const activeExp = params.learningExperiences.length > 0 ? params.learningExperiences : (['Memahami', 'Mengaplikasi', 'Merefleksi'] as LearningExperience[]);
+
+  // Resolve active themes to proportionally distribute questions
+  const availableThemes = getGradeThemes(params.grade);
+  const activeThemes = params.selectedThemes && params.selectedThemes.length > 0
+    ? availableThemes.filter((t) => params.selectedThemes?.includes(t.id))
+    : availableThemes;
 
   const availableStimuli = Object.values(VISUAL_STIMULI);
   let visualAssigned = 0;
@@ -617,6 +825,7 @@ export function generateSmartIpsQuestions(params: {
     for (let i = 0; i < targetCount; i++) {
       const cog = activeCognitive[i % activeCognitive.length];
       const exp = activeExp[i % activeExp.length];
+      const activeTheme = activeThemes[i % activeThemes.length] || activeThemes[0];
 
       // Determine competency domain (Literasi vs Numerasi vs Umum)
       let domain: 'literasi' | 'numerasi' | 'umum' = 'umum';
@@ -645,7 +854,7 @@ export function generateSmartIpsQuestions(params: {
 
       const qId = `q-${qType}-${currentNumber}-${Date.now()}`;
 
-      if (bankItem && i < bankMatching.length) {
+      if (bankItem && i < bankMatching.length && (!params.selectedThemes || params.selectedThemes.length === 0)) {
         result.push({
           ...bankItem,
           id: qId,
@@ -663,11 +872,12 @@ export function generateSmartIpsQuestions(params: {
           cognitiveLevel: cog,
           learningExperience: exp,
           grade: params.grade,
-          topic: params.topic || `Materi IPS Kelas ${params.grade} Kurikulum Merdeka`,
-          learningGoal: params.learningGoal || 'Peserta didik mampu menganalisis konsep IPS secara mendalam.',
+          topic: activeTheme ? `${activeTheme.code}: ${activeTheme.themeTitle}` : (params.topic || `Materi IPS Kelas ${params.grade} Kurikulum Merdeka`),
+          learningGoal: activeTheme ? activeTheme.learningGoal : (params.learningGoal || 'Peserta didik mampu menganalisis konsep IPS secara mendalam.'),
           index: i,
           stimulus,
           domain,
+          activeTheme,
         });
         result.push(synthetic);
       }
@@ -695,12 +905,13 @@ function createSyntheticIpsQuestion(args: {
   index: number;
   stimulus?: any;
   domain?: 'literasi' | 'numerasi' | 'umum';
+  activeTheme?: ThemeInfo;
 }): QuestionItem {
-  const { number, type, cognitiveLevel, learningExperience, grade, topic, index, stimulus, domain } = args;
+  const { number, type, cognitiveLevel, learningExperience, grade, topic, index, stimulus, domain, activeTheme } = args;
 
   // Diverse subtopic lenses across geography, sociology, economics, history, and anthropology
   const disciplinaryLenses = [
-    { domain: 'Geografi & Lingkungan', theme: 'Konektivitas Wilayah, Iklim, dan Daya Dukung Alam' },
+    { domain: activeTheme?.discipline || 'Geografi & Lingkungan', theme: activeTheme?.subtopics || 'Konektivitas Wilayah, Iklim, dan Daya Dukung Alam' },
     { domain: 'Sosiologi & Interaksi', theme: 'Stratifikasi, Norma Sosial, dan Dinamika Komunitas' },
     { domain: 'Ekonomi Kerakyatan', theme: 'Mekanisme Pasar, Kelangkaan, dan Literasi Finansial' },
     { domain: 'Sejarah & Kebangsaan', theme: 'Pergerakan Nasional, Kolonialisme, dan Integrasi Bangsa' },
@@ -708,7 +919,7 @@ function createSyntheticIpsQuestion(args: {
   ];
   const lens = disciplinaryLenses[index % disciplinaryLenses.length];
 
-  let indicator = `Menganalisis ${lens.theme.toLowerCase()} pada materi ${topic} untuk jenjang SMP Kelas ${grade}.`;
+  let indicator = `Menganalisis ${lens.theme.toLowerCase()} pada ${topic} untuk jenjang SMP Kelas ${grade}.`;
   if (domain === 'numerasi') {
     indicator = `[Numerasi IPS] Menelaah dan menginterpretasikan data angka/statistik ${lens.theme.toLowerCase()} pada materi ${topic}.`;
   } else if (domain === 'literasi') {

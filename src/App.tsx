@@ -9,6 +9,7 @@ import {
   DEFAULT_SCHOOL_PROFILE,
   IPS_PRESETS,
   generateSmartIpsQuestions,
+  combineGradeThemes,
   DEVELOPER_INFO,
 } from './data/kurikulumMerdekaIps';
 import { Header, TabType } from './components/Header';
@@ -36,13 +37,15 @@ export default function App() {
   });
 
   const [examConfig, setExamConfig] = useState<ExamConfig>(() => {
-    const defaultPreset = IPS_PRESETS[0];
+    const initialThemes = ['tema-01', 'tema-02', 'tema-03', 'tema-04'];
+    const { topic, learningGoal } = combineGradeThemes('7', initialThemes);
     return {
       grade: '7',
       subject: 'Ilmu Pengetahuan Sosial (IPS)',
       examTitle: 'Asesmen Sumatif Akhir Semester (ASAS)',
-      topic: defaultPreset.topic,
-      learningGoal: defaultPreset.learningGoal,
+      topic,
+      learningGoal,
+      selectedThemes: initialThemes,
       timeAllocation: 90,
       questionTypeConfigs: {
         pilihan_ganda: { enabled: true, count: 10 },
@@ -114,6 +117,7 @@ export default function App() {
           grade: examConfig.grade,
           topic: examConfig.topic,
           learningGoal: examConfig.learningGoal,
+          selectedThemes: examConfig.selectedThemes,
           typeConfigs: examConfig.questionTypeConfigs,
           visualCount: examConfig.visualQuestionsCount,
           literacyCount: examConfig.literacyCount,
@@ -147,6 +151,7 @@ export default function App() {
           grade: examConfig.grade,
           topic: examConfig.topic,
           learningGoal: examConfig.learningGoal,
+          selectedThemes: examConfig.selectedThemes,
           typeConfigs: examConfig.questionTypeConfigs,
           visualCount: examConfig.visualQuestionsCount,
           literacyCount: examConfig.literacyCount,
@@ -180,6 +185,7 @@ export default function App() {
           grade: examConfig.grade,
           topic: examConfig.topic,
           learningGoal: examConfig.learningGoal,
+          selectedThemes: examConfig.selectedThemes,
           typeConfigs: examConfig.questionTypeConfigs,
           visualCount: examConfig.visualQuestionsCount,
           literacyCount: examConfig.literacyCount,

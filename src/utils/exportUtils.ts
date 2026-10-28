@@ -3,8 +3,111 @@ import html2canvas from 'html2canvas';
 import { ExamDocument, QuestionType, QuestionItem } from '../types';
 import { QUESTION_TYPE_LABELS, calculateScoringNorms } from '../data/kurikulumMerdekaIps';
 
-export function printDocument() {
-  window.print();
+export async function printDocument(
+  doc?: ExamDocument,
+  activeTabTitle = 'Naskah_Soal_Siswa'
+): Promise<void> {
+  if (!doc) {
+    window.print();
+    return;
+  }
+
+  let logoPngUrl = doc.schoolProfile.logoUrl;
+  if (!logoPngUrl || !logoPngUrl.startsWith('data:image')) {
+    logoPngUrl = createDefaultLogoPngDataUrl();
+  }
+
+  const stimulusImages: Record<string, string> = {};
+  for (const q of doc.questions) {
+    if (q.stimulus) {
+      const imgData = await getStimulusPngDataUrl(q);
+      if (imgData) stimulusImages[q.id] = imgData;
+    }
+  }
+
+  const bodyContent = buildWordDocumentBody(doc, activeTabTitle, stimulusImages);
+  const kopHtml = buildWordKopSurat(doc, logoPngUrl);
+  const sigHtml = buildWordSignatures(doc);
+
+  const fullPrintHtml = `
+    <!DOCTYPE html>
+    <html lang="id">
+    <head>
+      <meta charset="utf-8">
+      <title>${doc.examConfig.examTitle} - ${doc.schoolProfile.schoolName}</title>
+      <style>
+        @page {
+          size: A4 portrait;
+          margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+        }
+        * {
+          box-sizing: border-box;
+        }
+        body {
+          font-family: 'Times New Roman', Times, serif;
+          font-size: 11pt;
+          line-height: 1.35;
+          color: #000000;
+          background: #ffffff;
+          margin: 0 auto;
+          padding: 8px;
+          max-width: 210mm;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        img {
+          max-width: 100%;
+          height: auto;
+        }
+        @media print {
+          body {
+            padding: 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      ${kopHtml}
+      ${bodyContent}
+      ${sigHtml}
+    </body>
+    </html>
+  `;
+
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.top = '-9999px';
+  iframe.style.left = '-9999px';
+  iframe.style.width = '1024px';
+  iframe.style.height = '1000px';
+  iframe.style.border = 'none';
+  document.body.appendChild(iframe);
+
+  const frameDoc = iframe.contentWindow?.document || iframe.contentDocument;
+  if (frameDoc) {
+    frameDoc.open();
+    frameDoc.write(fullPrintHtml);
+    frameDoc.close();
+    setTimeout(() => {
+      try {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      } catch {
+        window.print();
+      }
+      setTimeout(() => {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+      }, 5000);
+    }, 250);
+  } else {
+    window.print();
+  }
 }
 
 /**
@@ -322,43 +425,12 @@ function buildWordSignatures(doc: ExamDocument): string {
   `;
 }
 
-/**
- * Builds high-fidelity HTML document tailored for Microsoft Word (.doc)
- * - Strict A4 dimensions and 2.0cm margins (Top, Bottom, Left, Right)
- * - All visual stimuli embedded as sharp Base64 PNG images
- * - Multiple choice options arranged strictly vertically: A, B, C, D
- * - Table layouts for Kop Surat, Student Identity, and Signatures
- */
-export async function downloadWordDocument(
+export function buildWordDocumentBody(
   doc: ExamDocument,
   activeTabTitle: string,
-  onProgress?: (status: string) => void
-): Promise<void> {
-  onProgress?.('Mempersiapkan visual stimulus dan Kop Surat untuk Word...');
-
-  // Prepare school logo PNG
-  let logoPngUrl = doc.schoolProfile.logoUrl;
-  if (!logoPngUrl || !logoPngUrl.startsWith('data:image')) {
-    logoPngUrl = createDefaultLogoPngDataUrl();
-  }
-
-  // Pre-rasterize all visual stimuli so Microsoft Word displays 100% of images
-  const stimulusImages: Record<string, string> = {};
-  for (const q of doc.questions) {
-    if (q.stimulus) {
-      onProgress?.(`Memproses stimulus visual butir soal No. ${q.number}...`);
-      const imgData = await getStimulusPngDataUrl(q);
-      if (imgData) {
-        stimulusImages[q.id] = imgData;
-      }
-    }
-  }
-
-  onProgress?.('Menyusun format naskah standar A4 Microsoft Word...');
-
+  stimulusImages: Record<string, string>
+): string {
   const { examConfig, schoolProfile, questions } = doc;
-
-  // Group questions by type
   const order: QuestionType[] = [
     'pilihan_ganda',
     'pilihan_ganda_kompleks',
@@ -714,6 +786,46 @@ export async function downloadWordDocument(
     bodyContent += `</div>`;
   }
 
+  return bodyContent;
+}
+
+/**
+ * Builds high-fidelity HTML document tailored for Microsoft Word (.doc)
+ * - Strict A4 dimensions and 2.0cm margins (Top, Bottom, Left, Right)
+ * - All visual stimuli embedded as sharp Base64 PNG images
+ * - Multiple choice options arranged strictly vertically: A, B, C, D
+ * - Table layouts for Kop Surat, Student Identity, and Signatures
+ */
+export async function downloadWordDocument(
+  doc: ExamDocument,
+  activeTabTitle: string,
+  onProgress?: (status: string) => void
+): Promise<void> {
+  onProgress?.('Mempersiapkan visual stimulus dan Kop Surat untuk Word...');
+
+  // Prepare school logo PNG
+  let logoPngUrl = doc.schoolProfile.logoUrl;
+  if (!logoPngUrl || !logoPngUrl.startsWith('data:image')) {
+    logoPngUrl = createDefaultLogoPngDataUrl();
+  }
+
+  // Pre-rasterize all visual stimuli so Microsoft Word displays 100% of images
+  const stimulusImages: Record<string, string> = {};
+  for (const q of doc.questions) {
+    if (q.stimulus) {
+      onProgress?.(`Memproses stimulus visual butir soal No. ${q.number}...`);
+      const imgData = await getStimulusPngDataUrl(q);
+      if (imgData) {
+        stimulusImages[q.id] = imgData;
+      }
+    }
+  }
+
+  onProgress?.('Menyusun format naskah standar A4 Microsoft Word...');
+
+  const { examConfig, schoolProfile } = doc;
+  const bodyContent = buildWordDocumentBody(doc, activeTabTitle, stimulusImages);
+
   // Construct complete Microsoft Word (.doc) HTML envelope
   const wordHtml = `
     <html xmlns:o='urn:schemas-microsoft-com:office:office'
@@ -803,123 +915,493 @@ export async function downloadWordDocument(
 }
 
 /**
- * Exports pixel-perfect multi-page A4 PDF using html2canvas and jsPDF
- * - Captures full visual stimuli at 2x resolution
- * - Adds running header, footer, and page numbers
- * - Downloads automatically to Downloads folder
+ * Exports pixel-perfect multi-page A4 PDF directly using jsPDF vector engine
+ * - Renders official Kop Surat, logo, student identity box, and signatures
+ * - Pilihan Ganda options arranged strictly vertically: A, B, C, D
+ * - Embeds high-resolution visual stimulus images
+ * - Running headers, footers, and page numbers on every page
+ * - Completely immune to html2canvas DOM parsing crashes or modern CSS oklch bugs
+ * - Directly triggers download into the user's Downloads folder
  */
 export async function downloadPdfDocument(
   doc: ExamDocument,
   activeTabTitle: string,
   onProgress?: (status: string) => void
 ): Promise<void> {
-  const contentEl = document.getElementById('printable-document-content');
-  if (!contentEl) {
-    alert('Konten dokumen tidak ditemukan.');
-    return;
+  onProgress?.('Mempersiapkan dokumen dan stimulus visual PDF...');
+
+  let logoPngUrl = doc.schoolProfile.logoUrl;
+  if (!logoPngUrl || !logoPngUrl.startsWith('data:image')) {
+    logoPngUrl = createDefaultLogoPngDataUrl();
   }
 
-  onProgress?.('Mempersiapkan render visual resolusi tinggi (2x DPI)...');
-
-  try {
-    const canvas = await html2canvas(contentEl, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-      windowWidth: 1024,
-    });
-
-    onProgress?.('Menyusun halaman dokumen standar A4...');
-
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
-
-    const pdfPageWidth = 210;
-    const pdfPageHeight = 297;
-    const marginSide = 12; // 12mm
-    const marginTop = 12;
-    const marginBottom = 12;
-
-    const printableWidth = pdfPageWidth - marginSide * 2;
-    const printableHeight = pdfPageHeight - marginTop - marginBottom;
-
-    const pxPerMm = canvas.width / printableWidth;
-    const pagePixelHeight = Math.floor(printableHeight * pxPerMm);
-    const totalPages = Math.ceil(canvas.height / pagePixelHeight);
-
-    for (let page = 0; page < totalPages; page++) {
-      if (page > 0) {
-        pdf.addPage();
+  const stimulusImages: Record<string, string> = {};
+  for (const q of doc.questions) {
+    if (q.stimulus) {
+      onProgress?.(`Memproses stimulus visual butir No. ${q.number}...`);
+      const imgData = await getStimulusPngDataUrl(q);
+      if (imgData) {
+        stimulusImages[q.id] = imgData;
       }
+    }
+  }
 
-      onProgress?.(`Memproses halaman ${page + 1} dari ${totalPages}...`);
+  onProgress?.('Menyusun halaman PDF standar A4...');
 
-      const sourceY = page * pagePixelHeight;
-      const sourceHeight = Math.min(pagePixelHeight, canvas.height - sourceY);
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
 
-      const pageCanvas = document.createElement('canvas');
-      pageCanvas.width = canvas.width;
-      pageCanvas.height = sourceHeight;
+  const margin = 14;
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const contentWidth = pageWidth - margin * 2; // 182mm
+  let y = margin;
 
-      const pageCtx = pageCanvas.getContext('2d');
-      if (pageCtx) {
-        pageCtx.fillStyle = '#ffffff';
-        pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-        pageCtx.drawImage(
-          canvas,
-          0,
-          sourceY,
-          canvas.width,
-          sourceHeight,
-          0,
-          0,
-          canvas.width,
-          sourceHeight
-        );
+  const checkAddPage = (neededSpace: number) => {
+    if (y + neededSpace > pageHeight - margin - 8) {
+      pdf.addPage();
+      y = margin;
+      return true;
+    }
+    return false;
+  };
 
-        const pageDataUrl = pageCanvas.toDataURL('image/jpeg', 0.95);
-        const renderedHeightMm = sourceHeight / pxPerMm;
+  // 1. KOP SURAT
+  if (logoPngUrl) {
+    try {
+      pdf.addImage(logoPngUrl, 'PNG', margin, y, 18, 18);
+    } catch {
+      // ignore
+    }
+  }
 
-        pdf.addImage(
-          pageDataUrl,
-          'JPEG',
-          marginSide,
-          marginTop,
-          printableWidth,
-          renderedHeightMm,
-          undefined,
-          'FAST'
-        );
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9);
+  pdf.text(
+    `PEMERINTAH KABUPATEN ${(doc.schoolProfile.subdistrictCity || 'BANYUMAS').toUpperCase()}`,
+    110,
+    y + 4,
+    { align: 'center' }
+  );
+  pdf.text('DINAS PENDIDIKAN DAN KEBUDAYAAN', 110, y + 8, { align: 'center' });
+  pdf.setFontSize(12);
+  pdf.text(
+    (doc.schoolProfile.schoolName || 'SMP NEGERI 2 GUMELAR').toUpperCase(),
+    110,
+    y + 13,
+    { align: 'center' }
+  );
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(7.5);
+  pdf.text(
+    doc.schoolProfile.schoolAddress ||
+      'Jl. Raya Gumelar, Kec. Gumelar, Kab. Banyumas, Jawa Tengah',
+    110,
+    y + 17,
+    { align: 'center' }
+  );
+
+  y += 21;
+  pdf.setLineWidth(0.6);
+  pdf.line(margin, y, pageWidth - margin, y);
+  pdf.setLineWidth(0.2);
+  pdf.line(margin, y + 0.8, pageWidth - margin, y + 0.8);
+  y += 5;
+
+  // 2. DOCUMENT BODY BY TAB
+  if (activeTabTitle.includes('Kisi-Kisi')) {
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(11);
+    pdf.text('KISI-KISI PENULISAN SOAL ASESMEN', 105, y, { align: 'center' });
+    y += 4.5;
+    pdf.setFontSize(9);
+    pdf.text(
+      `MATA PELAJARAN: ILMU PENGETAHUAN SOSIAL (IPS) · SMP KELAS ${doc.examConfig.grade}`,
+      105,
+      y,
+      { align: 'center' }
+    );
+    y += 4;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    pdf.text(
+      `Tahun Pelajaran: ${doc.schoolProfile.academicYear} · Semester: ${doc.schoolProfile.semester} · Kurikulum Merdeka`,
+      105,
+      y,
+      { align: 'center' }
+    );
+    y += 6;
+
+    // Table Header
+    pdf.setFillColor(241, 245, 249);
+    pdf.rect(margin, y, contentWidth, 6, 'F');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(7.5);
+    pdf.rect(margin, y, contentWidth, 6, 'S');
+    pdf.text('No', margin + 2, y + 4.2);
+    pdf.text('Indikator Soal & Stimulus', margin + 12, y + 4.2);
+    pdf.text('Level', margin + 110, y + 4.2);
+    pdf.text('Domain AKM', margin + 125, y + 4.2);
+    pdf.text('Bentuk Soal', margin + 155, y + 4.2);
+    y += 6;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7.5);
+    for (let i = 0; i < doc.questions.length; i++) {
+      const q = doc.questions[i];
+      const indLines = pdf.splitTextToSize(q.indicator, 94);
+      const rowH = Math.max(7, indLines.length * 3.8 + 2);
+      checkAddPage(rowH);
+      pdf.rect(margin, y, contentWidth, rowH, 'S');
+      pdf.text(`${i + 1}`, margin + 2, y + 4.2);
+      pdf.text(indLines, margin + 12, y + 4);
+      pdf.text(q.cognitiveLevel, margin + 110, y + 4.2);
+      const domText =
+        q.competencyDomain === 'literasi'
+          ? 'Literasi'
+          : q.competencyDomain === 'numerasi'
+          ? 'Numerasi'
+          : 'Konsep';
+      pdf.text(domText, margin + 125, y + 4.2);
+      pdf.text(QUESTION_TYPE_LABELS[q.type] || q.type, margin + 155, y + 4.2);
+      y += rowH;
+    }
+  } else if (activeTabTitle.includes('Kunci Jawaban')) {
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(11);
+    pdf.text('KUNCI JAWABAN & PEDOMAN PENSKORAN', 105, y, { align: 'center' });
+    y += 4.5;
+    pdf.setFontSize(9);
+    pdf.text(
+      `MATA PELAJARAN: ILMU PENGETAHUAN SOSIAL (IPS) · SMP KELAS ${doc.examConfig.grade}`,
+      105,
+      y,
+      { align: 'center' }
+    );
+    y += 7;
+
+    pdf.setFillColor(241, 245, 249);
+    pdf.rect(margin, y, contentWidth, 6, 'F');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(7.5);
+    pdf.rect(margin, y, contentWidth, 6, 'S');
+    pdf.text('No', margin + 2, y + 4.2);
+    pdf.text('Bentuk', margin + 12, y + 4.2);
+    pdf.text('Kunci Jawaban', margin + 45, y + 4.2);
+    pdf.text('Pembahasan & Rubrik', margin + 90, y + 4.2);
+    pdf.text('Skor', margin + 172, y + 4.2);
+    y += 6;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7.5);
+    for (let i = 0; i < doc.questions.length; i++) {
+      const q = doc.questions[i];
+      const keyLines = pdf.splitTextToSize(q.answerKey, 42);
+      const expLines = pdf.splitTextToSize(`${q.explanation} (Rubrik: ${q.rubric})`, 80);
+      const rowH = Math.max(7, Math.max(keyLines.length, expLines.length) * 3.8 + 2);
+      checkAddPage(rowH);
+      pdf.rect(margin, y, contentWidth, rowH, 'S');
+      pdf.text(`${q.number}`, margin + 2, y + 4.2);
+      pdf.text(QUESTION_TYPE_LABELS[q.type] || q.type, margin + 12, y + 4.2);
+      pdf.text(keyLines, margin + 45, y + 4);
+      pdf.text(expLines, margin + 90, y + 4);
+      pdf.text(`${q.maxScore}`, margin + 174, y + 4.2);
+      y += rowH;
+    }
+  } else {
+    // Default: NASKAH SOAL SISWA
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(11);
+    pdf.text(`NASKAH SOAL ${doc.examConfig.examTitle.toUpperCase()}`, 105, y, {
+      align: 'center',
+    });
+    y += 4.5;
+    pdf.setFontSize(9);
+    pdf.text(
+      `MATA PELAJARAN: ILMU PENGETAHUAN SOSIAL (IPS SMP) · KURIKULUM MERDEKA`,
+      105,
+      y,
+      { align: 'center' }
+    );
+    y += 4;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    pdf.text(
+      `Tahun Pelajaran: ${doc.schoolProfile.academicYear} · Semester: ${doc.schoolProfile.semester} · Waktu: ${doc.examConfig.timeAllocation} Menit`,
+      105,
+      y,
+      { align: 'center' }
+    );
+    y += 6;
+
+    // Student identity box
+    pdf.setLineWidth(0.3);
+    pdf.rect(margin, y, contentWidth, 13);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    pdf.text(
+      `Nama Peserta   : ................................................................`,
+      margin + 3,
+      y + 4.5
+    );
+    pdf.text(
+      `Kelas / Ruang  : ${doc.examConfig.grade} (..........)`,
+      margin + 115,
+      y + 4.5
+    );
+    pdf.text(
+      `Nomor Peserta  : ................................................................`,
+      margin + 3,
+      y + 9.5
+    );
+    pdf.text(
+      `Hari / Tanggal : ................................................................`,
+      margin + 115,
+      y + 9.5
+    );
+    y += 17;
+
+    // Petunjuk umum
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8);
+    pdf.text('PETUNJUK UMUM:', margin, y);
+    y += 3.8;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7.5);
+    pdf.text('1. Berdoalah sebelum mulai mengerjakan soal.', margin, y);
+    y += 3.4;
+    pdf.text(
+      '2. Tuliskan nama dan nomor peserta pada lembar jawaban yang telah disediakan.',
+      margin,
+      y
+    );
+    y += 3.4;
+    pdf.text(
+      '3. Periksa dan bacalah setiap butir soal dengan saksama sebelum Anda menjawabnya.',
+      margin,
+      y
+    );
+    y += 3.4;
+    pdf.text(
+      '4. Dahulukan menjawab butir-butir soal yang Anda anggap lebih mudah.',
+      margin,
+      y
+    );
+    y += 6;
+
+    // Group questions by type
+    const order: QuestionType[] = [
+      'pilihan_ganda',
+      'pilihan_ganda_kompleks',
+      'menjodohkan',
+      'benar_salah',
+      'isian_singkat',
+      'uraian',
+    ];
+
+    const sectionRoman = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+    let sectionIdx = 0;
+
+    for (const t of order) {
+      const qList = doc.questions.filter((q) => q.type === t);
+      if (qList.length === 0) continue;
+
+      checkAddPage(12);
+      pdf.setFillColor(241, 245, 249);
+      pdf.rect(margin, y, contentWidth, 6, 'F');
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8.5);
+      const secTitle = `BAGIAN ${sectionRoman[sectionIdx] || ''}: SOAL ${QUESTION_TYPE_LABELS[t].toUpperCase()}`;
+      pdf.text(secTitle, margin + 3, y + 4.2);
+      y += 8;
+      sectionIdx++;
+
+      for (const q of qList) {
+        checkAddPage(18);
+
+        // Question text
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8.5);
+        const qLines = pdf.splitTextToSize(`${q.number}. ${q.questionText}`, contentWidth);
+        pdf.text(qLines, margin, y);
+        y += qLines.length * 4.2 + 1;
+
+        // Stimulus text
+        if (q.stimulus && q.stimulus.text) {
+          checkAddPage(12);
+          pdf.setFont('helvetica', 'italic');
+          pdf.setFontSize(7.5);
+          pdf.setFillColor(248, 250, 252);
+          const stimLines = pdf.splitTextToSize(q.stimulus.text, contentWidth - 8);
+          const stimH = stimLines.length * 3.6 + 4;
+          pdf.rect(margin + 2, y, contentWidth - 4, stimH, 'F');
+          pdf.rect(margin + 2, y, contentWidth - 4, stimH, 'S');
+          pdf.text(stimLines, margin + 4, y + 3.5);
+          y += stimH + 2;
+        }
+
+        // Stimulus image
+        if (q.stimulus && stimulusImages[q.id]) {
+          checkAddPage(36);
+          try {
+            pdf.addImage(stimulusImages[q.id], 'PNG', margin + 15, y, 90, 32);
+            y += 34;
+          } catch {
+            // ignore
+          }
+        }
+
+        // Pilihan Ganda: A, B, C, D strictly vertical
+        if (q.type === 'pilihan_ganda' && q.options) {
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(8.5);
+          for (const opt of q.options) {
+            checkAddPage(5.5);
+            const optLines = pdf.splitTextToSize(opt, contentWidth - 6);
+            pdf.text(optLines, margin + 5, y);
+            y += optLines.length * 4 + 0.5;
+          }
+          y += 2;
+        } else if (q.type === 'pilihan_ganda_kompleks' && q.complexOptions) {
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(8.5);
+          for (const cOpt of q.complexOptions) {
+            checkAddPage(5.5);
+            const cLines = pdf.splitTextToSize(`[   ]  ${cOpt.text}`, contentWidth - 6);
+            pdf.text(cLines, margin + 5, y);
+            y += cLines.length * 4 + 0.5;
+          }
+          y += 2;
+        } else if (q.type === 'isian_singkat') {
+          checkAddPage(6);
+          pdf.setFont('helvetica', 'italic');
+          pdf.setFontSize(8);
+          pdf.text(
+            'Jawaban: .........................................................................................................................................',
+            margin + 5,
+            y
+          );
+          y += 6;
+        } else if (q.type === 'menjodohkan' && q.matchingPairs) {
+          for (const pair of q.matchingPairs) {
+            checkAddPage(5.5);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.text(`• ${pair.left}  ----->  ${pair.right}`, margin + 5, y);
+            y += 4.5;
+          }
+          y += 2;
+        } else if (q.type === 'benar_salah' && q.trueFalseStatements) {
+          for (const st of q.trueFalseStatements) {
+            checkAddPage(5.5);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.text(`[ B / S ]  ${st.statement}`, margin + 5, y);
+            y += 4.5;
+          }
+          y += 2;
+        } else if (q.type === 'uraian') {
+          checkAddPage(18);
+          pdf.setLineDashPattern([1, 1], 0);
+          pdf.line(margin + 5, y + 4, pageWidth - margin, y + 4);
+          pdf.line(margin + 5, y + 9, pageWidth - margin, y + 9);
+          pdf.line(margin + 5, y + 14, pageWidth - margin, y + 14);
+          pdf.setLineDashPattern([], 0);
+          y += 17;
+        }
+
+        y += 2;
       }
-
-      // Add running footer
-      pdf.setFont('helvetica', 'italic');
-      pdf.setFontSize(8);
-      pdf.setTextColor(100, 100, 100);
-      pdf.text(
-        `Asesmen IPS SMP Kurikulum Merdeka - ${doc.schoolProfile.schoolName || 'SMPN 2 Gumelar'} | Pengembang: Nopidha Ardyansah, S.Pd., M.Pd.`,
-        marginSide,
-        pdfPageHeight - 5
-      );
-      pdf.text(
-        `Hal. ${page + 1} dari ${totalPages}`,
-        pdfPageWidth - marginSide,
-        pdfPageHeight - 5,
-        { align: 'right' }
-      );
     }
 
-    onProgress?.('Mengunduh file PDF...');
+    // Signatures
+    checkAddPage(30);
+    const todayStr = new Date().toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8.5);
+    pdf.text('Mengetahui,', margin + 10, y);
+    pdf.text(
+      `Kepala ${doc.schoolProfile.schoolName || 'SMP Negeri 2 Gumelar'}`,
+      margin + 10,
+      y + 4
+    );
+    pdf.text(
+      `${doc.schoolProfile.subdistrictCity || 'Banyumas'}, ${todayStr}`,
+      margin + 115,
+      y
+    );
+    pdf.text('Guru Mata Pelajaran IPS', margin + 115, y + 4);
 
-    const safeSchool = (doc.schoolProfile.schoolName || 'SMP').replace(/[\s\W]+/g, '_');
-    const safeTab = activeTabTitle.replace(/[\s\W]+/g, '_');
-    pdf.save(`Soal_IPS_SMP_Kelas${doc.examConfig.grade}_${safeSchool}_${safeTab}.pdf`);
-  } catch (error: any) {
-    console.error('Gagal menghasilkan PDF via canvas:', error);
-    alert('Terjadi kendala saat mengekspor PDF: ' + (error?.message || 'Error tidak diketahui'));
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(
+      doc.schoolProfile.principalName || 'Nopidha Ardyansah, S.Pd., M.Pd.',
+      margin + 10,
+      y + 20
+    );
+    pdf.text(
+      doc.schoolProfile.teacherName || 'Budi Santoso, S.Pd.',
+      margin + 115,
+      y + 20
+    );
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7.5);
+    pdf.text(
+      `NIP. ${doc.schoolProfile.principalNip || '19780512 200501 1 008'}`,
+      margin + 10,
+      y + 24
+    );
+    pdf.text(
+      `NIP. ${doc.schoolProfile.teacherNip || '19840214 200902 1 003'}`,
+      margin + 115,
+      y + 24
+    );
+  }
+
+  // Running footer & page numbers on all pages
+  const totalPages = pdf.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    pdf.setPage(i);
+    pdf.setFont('helvetica', 'italic');
+    pdf.setFontSize(7.5);
+    pdf.setTextColor(120, 120, 120);
+    pdf.line(margin, 289, pageWidth - margin, 289);
+    pdf.text(
+      `Asesmen IPS SMP Kurikulum Merdeka - ${doc.schoolProfile.schoolName || 'SMPN 2 Gumelar'} | Pengembang: Nopidha Ardyansah, S.Pd., M.Pd.`,
+      margin,
+      293
+    );
+    pdf.text(`Hal. ${i} dari ${totalPages}`, pageWidth - margin, 293, {
+      align: 'right',
+    });
+  }
+
+  onProgress?.('Mengunduh file PDF...');
+
+  const safeSchool = (doc.schoolProfile.schoolName || 'SMP').replace(/[\s\W]+/g, '_');
+  const safeTab = activeTabTitle.replace(/[\s\W]+/g, '_');
+  const fileName = `Soal_IPS_SMP_Kelas${doc.examConfig.grade}_${safeSchool}_${safeTab}.pdf`;
+
+  pdf.save(fileName);
+
+  // Direct download link trigger
+  try {
+    const blob = pdf.output('blob');
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
+  } catch {
+    // pdf.save already executed
   }
 }
